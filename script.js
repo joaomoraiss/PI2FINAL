@@ -1,9 +1,8 @@
-var LABELS_CSV = [];
 var DATA_CSV = {};
-
 var chartBar = null;
 var chartPizza = null;
 var chartLines = null;
+
 
 function criarGraficoDeBarras(data) {
   const ctx = document.getElementById('barChart').getContext('2d');
@@ -81,22 +80,17 @@ function analisarCSV(file) {
     complete: function (results) {
       const rawData = results.data;
 
-      console.log('Dados brutos do CSV:', rawData);
-
       const filteredData = rawData.filter(item => item['Medida'] !== undefined);
 
-      console.log('Dados filtrados do CSV:', filteredData); // Adicione esta linha
-       
       const dataByMeasure = filteredData.reduce((acc, item) => {
         const measure = item['Medida'];
         if (!acc[measure]) {
           acc[measure] = { labels: [], values: [] };
         }
-        acc[measure].labels.push(item['Município']);
+        acc[measure].labels.push(item['Medida']);
         acc[measure].values.push(item['Docentes']);
         return acc;
       }, {});
-      console.log('Dados agrupados por medida:', dataByMeasure);
 
       const seriesDropdown = document.getElementById('series');
       seriesDropdown.innerHTML = '';
@@ -107,13 +101,17 @@ function analisarCSV(file) {
         seriesDropdown.appendChild(option);
       });
 
-      // Aqui, estou definindo a variável global DATA_CSV para ser utilizada posteriormente
+      
       DATA_CSV = dataByMeasure;
 
-      // Alterei para pegar a medida selecionada pelo usuário
+     
       const selectedMeasure = document.getElementById('series').value;
+
       
-      // Atualizando os gráficos com a medida inicial
+      criarGraficoDeBarras(DATA_CSV[selectedMeasure]);
+      criarGraficoDeLinhas(DATA_CSV[selectedMeasure]);
+
+      
       updateCharts(selectedMeasure);
     }
   });
@@ -133,33 +131,54 @@ function exportarGrafico() {
   btnDownload.click();
 }
 
-
 document.getElementById('series').addEventListener('change', function (event) {
   const series = document.getElementById('series');
   const selectedValue = series.options[series.selectedIndex].text;
   updateCharts(selectedValue);
 });
-
+criarGraficoDeBarras({ labels: [], values: [] });
+criarGraficoDeLinhas({ labels: [], values: [] });
+criarGraficoDePizza({ labels: [], values: [] });
 function updateCharts(selectedMeasure) {
-  // Verifique se os gráficos já foram inicializados
-  if (!chartBar || !chartPizza || !chartLines) {
-    // Se não foram inicializados, crie-os com dados vazios para evitar erros
+ 
+  if (!chartBar) {
     criarGraficoDeBarras({ labels: [], values: [] });
-    criarGraficoDePizza({ labels: [], values: [] });
+  }
+
+  if (!chartLines) {
     criarGraficoDeLinhas({ labels: [], values: [] });
   }
 
-  // Atualize os dados dos gráficos com base na medida selecionada
-  chartBar.data.labels = DATA_CSV[selectedMeasure].labels;
-  chartBar.data.datasets[0].data = DATA_CSV[selectedMeasure].values;
-  chartBar.update(); // Atualize o gráfico de barras
+  if (!chartPizza) {
+    criarGraficoDePizza({ labels: [], values: [] });
+  }
 
-  chartPizza.data.labels = DATA_CSV[selectedMeasure].labels;
-  chartPizza.data.datasets[0].data = DATA_CSV[selectedMeasure].values;
-  chartPizza.update(); // Atualize o gráfico de pizza
+  
+  const chartBarData = {
+    labels: DATA_CSV[selectedMeasure].labels,
+    values: DATA_CSV[selectedMeasure].values
+  };
 
-  chartLines.data.labels = DATA_CSV[selectedMeasure].labels;
-  chartLines.data.datasets[0].data = DATA_CSV[selectedMeasure].values;
-  chartLines.update(); // Atualize o gráfico de linhas
+  chartBar.data.labels = chartBarData.labels;
+  chartBar.data.datasets[0].data = chartBarData.values;
+  chartBar.update(); 
+
+  const chartPizzaData = DATA_CSV[selectedMeasure].labels.map((label, index) => {
+    return { label, value: DATA_CSV[selectedMeasure].values[index] };
+  });
+
+  chartPizza.data.labels = chartPizzaData.map(item => item.label);
+  chartPizza.data.datasets[0].data = chartPizzaData.map(item => item.value);
+  chartPizza.update(); 
+
+  const chartLinesData = {
+    labels: DATA_CSV[selectedMeasure].labels,
+    values: DATA_CSV[selectedMeasure].values
+  };
+
+  chartLines.data.labels = chartLinesData.labels;
+  chartLines.data.datasets[0].data = chartLinesData.values;
+  chartLines.update(); 
 }
+
 
