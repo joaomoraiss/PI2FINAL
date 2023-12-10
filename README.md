@@ -3,7 +3,12 @@ O dashboard foi feito para analisar os dados do arquivo csv que se encontra dent
 
 INTEGRANTES:
 -João Victor Rodrigues de Morais: FRONT-END
+
 -Hallan Victor: Documentação enviada + Prototipo Figma
+
 -Vinicius grillo : ~
+
 -Pedro Augusto : ~
+
 -Arthur Marques: ~
+
